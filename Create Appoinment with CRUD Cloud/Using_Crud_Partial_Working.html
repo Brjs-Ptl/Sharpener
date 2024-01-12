@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        /* Add any custom styles here */
+    </style>
+</head>
+<body>
+    <form onsubmit="saveToLocalStorage(event)">
+        <label>Name</label>
+        <input id="username" type="text" name="username" required />
+        <label>Email</label>
+        <input id="email" type="email" name="email" required />
+        <label>Phone Number</label>
+        <input id="phoneno" type="tel" name="phoneno" required />
+    
+        <button type="submit">Submit</button>
+    </form>
+
+    <ul id="listOfUsers"></ul>
+
+    <script>
+
+        function saveToLocalStorage(event) {
+            event.preventDefault();
+            const name = event.target.username.value;
+            const email = event.target.email.value;
+            const phoneno = event.target.phoneno.value;
+
+            // Simple client-side validation
+            if (!name || !email || !phoneno) {
+                alert("Please fill in all fields");
+                return;
+            }
+
+            const obj = {
+                name,
+                email,
+                phoneno
+            }
+
+            // Using Axios to POST data to the CRUD API for creating a new user
+            axios.post("https://crudcrud.com/api/0865fb73687b43ffbb51caee4695579a/delete_appoinment", obj)
+                .then((response) => {
+                    // On successful creation, add the user to the website and clear the form
+                    showNewUserOnScreen(response.data);
+                    showSuccessMessage("User added successfully");
+                    event.target.reset();
+                })
+                .catch((error) => {
+                    console.log(error);
+                    showErrorMessage("Failed to add user");
+                });
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            // Using Axios to GET data from the CRUD API
+            axios.get("https://jsonplaceholder.typicode.com/users")
+                .then((response) => {
+                    // On successful retrieval, display the existing users on the website
+                    for (var i = 0; i < response.data.length; i++) {
+                        showNewUserOnScreen(response.data[i]);
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                    showErrorMessage("Failed to retrieve users");
+                });
+        });
+
+        function showNewUserOnScreen(user) {
+            const parentNode = document.getElementById('listOfUsers');
+
+            const childHTML = `<li id="${user.id}">
+                                    ${user.name} - ${user.email} - ${user.phone}
+                                    <button onclick="deleteUser('${user.id}')">Delete User</button>
+                                    <button onclick="editUserDetails('${user.id}','${user.name}','${user.email}','${user.phone}')">Edit User</button>
+                                </li>`;
+            parentNode.innerHTML += childHTML;
+        }
+
+        function editUserDetails(userId, name, email, phoneno) {
+            document.getElementById("email").value = email;
+            document.getElementById("username").value = name;
+            document.getElementById("phoneno").value = phoneno;
+        }
+
+        function deleteUser(userId) {
+            // Using Axios to perform DELETE operation on the CRUD API
+            axios.delete(`https://jsonplaceholder.typicode.com/users/${userId}`)
+                .then((response) => {
+                    // On successful deletion, remove the user from the website
+                    const user = document.getElementById(userId);
+                    user.parentNode.removeChild(user);
+                    showSuccessMessage("User deleted successfully");
+                })
+                .catch((error) => {
+                    console.log(error);
+                    showErrorMessage("Failed to delete user");
+                });
+        }
+
+        function showSuccessMessage(message) {
+            alert(`Success: ${message}`);
+        }
+
+        function showErrorMessage(message) {
+            alert(`Error: ${message}`);
+        }
+
+    </script>
+</body>
+</html>
